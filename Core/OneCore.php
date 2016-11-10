@@ -1,14 +1,22 @@
 <?php
 
+define('ONECORE_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR);
+
 /**
  * This is the core itself. This is where the magic happens
  * User: Anton Netterwall <netterwall@gmail.com>
  */
-class One {
+class OneCore {
 
-    protected static $instance;
-    protected function __construct() {  }
-    protected function __clone() {  }
+    /**
+     * @var OneCore
+     */
+    protected static $instance = null;
+
+    /**
+     * @var bool
+     */
+    protected $coreLoaded = false;
 
     /**
      * Get singleton instance of OneCore
@@ -19,17 +27,32 @@ class One {
             static::$instance = new static();
         return static::$instance;
     }
+
     /**
-     * Private stuff
+     * No cloning a singleton
      */
-    private function __construct() {}
     private function __clone() {}
 
-    public static function Self() {
+    /**
+     * Load everything essential on instantiation
+     */
+    private function __construct()
+    {
+        if (!$this->coreLoaded) {
+            foreach (glob(ONECORE_PATH . 'core.*.php') as $coreFile) {
+                require_once $coreFile;
+            }
+            $this->coreLoaded = true;
+        }
+    }
 
-        if (!static::$instance)
-            static::$instance = new self();
-        return static::$instance;
+    /**
+     * Runs project
+     * @param $projectName string
+     */
+    public function Run($projectName = null) {
+
+        echo $projectName;
 
     }
 
