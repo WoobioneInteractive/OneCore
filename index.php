@@ -3,9 +3,11 @@
 // Set include path
 set_include_path(dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
-// Load core
-require 'Core/OneCore.php';
+// Load OneCore
+require_once 'Core/OneCore.php';
 
-//OneCore::Instance()->Configure();
+// Configure from config file
+OneCore::Instance()->Configure('config.php');
 
-OneCore::Instance()->Run('OneTrack');
+// Run application
+OneCore::Instance()->Run();

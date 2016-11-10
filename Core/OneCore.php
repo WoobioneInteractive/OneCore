@@ -4,7 +4,7 @@ define('ONECORE_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
 /**
  * This is the core itself. This is where the magic happens
- * User: Anton Netterwall <netterwall@gmail.com>
+ * Author: Anton Netterwall <netterwall@gmail.com>
  */
 class OneCore {
 
@@ -50,10 +50,22 @@ class OneCore {
      * Runs project
      * @param $projectName string
      */
-    public function Run($projectName = null) {
+    public function Run($applicationName = null) {
 
-        echo $projectName;
+        if (is_null($applicationName))
 
+
+        echo $applicationName;
+
+    }
+
+    // Quick Helpers
+
+    /**
+     * @return OneCoreConfigHandler
+     */
+    public static function Config() {
+        return self::Instance()->ConfigHandler;
     }
 
 }
