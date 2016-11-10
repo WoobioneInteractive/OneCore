@@ -1,0 +1,3 @@
+# Rewrite all traffic to OneCore's index.php file
+RewriteEngine On
+RewriteRule ^(.*)$ index.php?request=$1 [QSA]
