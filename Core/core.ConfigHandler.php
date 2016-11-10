@@ -1,6 +1,6 @@
 <?php
 
-class OneCoreConfigHandler {
+class CoreConfigHandler {
 
     /**
      * @var array
@@ -15,6 +15,11 @@ class OneCoreConfigHandler {
 
         $this->configuration = $configuration;
 
+    }
+
+
+    public function LoadConfig($filePath) {
+        echo $filePath;
     }
 
 }

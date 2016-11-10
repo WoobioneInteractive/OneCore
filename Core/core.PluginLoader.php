@@ -3,7 +3,7 @@
 /**
  *
  */
-class OnePluginLoader {
+class CorePluginLoader {
 
 
 
