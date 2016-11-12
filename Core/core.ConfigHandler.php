@@ -1,6 +1,9 @@
 <?php
 
-class CoreConfigHandler {
+/**
+ * Config handler
+ */
+class ConfigHandler {
 
     /**
      * @var array
@@ -19,7 +22,20 @@ class CoreConfigHandler {
 
 
     public function LoadConfig($filePath) {
-        echo $filePath;
+        //echo $filePath;
+    }
+
+    /**
+     * Get config key value
+     * @param $key string Config_xxx
+     */
+    public function Get($key) {
+        return 'CoreExceptionHandler';
     }
 
 }
+
+/**
+ * Class ConfigHandlerException
+ */
+class ConfigHandlerException extends Exception {}

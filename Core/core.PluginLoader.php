@@ -3,7 +3,7 @@
 /**
  *
  */
-class CorePluginLoader {
+class PluginLoader {
 
 
 

@@ -10,4 +10,4 @@ require_once 'Core/OneCore.php';
 OneCore::LoadConfig('config.php');
 
 // Run application
-OneCore::Instance()->Run();
+OneCore::Run();
