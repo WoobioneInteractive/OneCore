@@ -1,5 +1,6 @@
 <?php
 
-interface IApplication {
+interface IApplication
+{
 
 }

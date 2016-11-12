@@ -1,7 +1,8 @@
 <?php
 
-interface IExceptionHandler {
+interface IExceptionHandler
+{
 
-    public static function HandleException(Exception $e);
+	public static function HandleException(Exception $e);
 
 }

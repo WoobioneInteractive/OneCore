@@ -1,9 +1,11 @@
 <?php
 
-class CoreExceptionHandler implements IExceptionHandler {
+class CoreExceptionHandler implements IExceptionHandler
+{
 
-    public static function HandleException(Exception $e) {
+	public static function HandleException(Exception $e)
+	{
 		var_dump($e->getMessage());
-    }
+	}
 
 }
