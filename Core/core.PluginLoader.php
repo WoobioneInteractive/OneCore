@@ -5,7 +5,19 @@
  */
 class PluginLoader
 {
+	/**
+	 * @var IConfigHandler|null
+	 */
+	private $configHandler = null;
 
+	/**
+	 * PluginLoader constructor.
+	 * @param IConfigHandler $configHandler
+	 */
+	public function __construct(IConfigHandler $configHandler)
+	{
+		$this->configHandler = $configHandler;
+	}
 
 	public function LoadFromDirectory($directoryName)
 	{
@@ -15,9 +27,8 @@ class PluginLoader
 
 	}
 
-	public function Load(IOnePlugin $plugin)
+	public function Load($pluginName)
 	{
-
 
 	}
 

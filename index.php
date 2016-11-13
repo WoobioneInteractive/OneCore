@@ -7,7 +7,7 @@ set_include_path(dirname(__FILE__) . DIRECTORY_SEPARATOR);
 require_once 'Core/OneCore.php';
 
 // Configure from config file
-OneCore::LoadConfig('config.php');
+OneCore::ConfigureFromFile('config.php');
 
 // Run application
 OneCore::Run();
