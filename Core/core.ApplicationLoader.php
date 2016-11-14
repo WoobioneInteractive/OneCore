@@ -9,6 +9,7 @@ class ApplicationLoader
 	// Internal constants
 	const ApplicationConfigurationFileSuffix = '.Config.php';
 	const ApplicationFileSuffix = '.php';
+	const ApplicationInterface = 'IApplication';
 
 	/**
 	 * @var DependencyInjector
@@ -49,12 +50,10 @@ class ApplicationLoader
 	 * @throws ApplicationLoaderException
 	 */
 	private function validateApplicationName($applicationName) {
-		if (is_null($applicationName)) {
-			if (is_null($this->mainApplicationIdentifier))
-				throw new ApplicationLoaderException('No main application configured');
+		if (is_null($this->mainApplicationIdentifier))
+			throw new ApplicationLoaderException("No main application configured when trying to run application '$applicationName'");
 
-			$applicationName = $this->mainApplicationIdentifier;
-		}
+		$applicationName = $applicationName ?: $this->mainApplicationIdentifier;
 
 		if (!is_dir($applicationName))
 			throw new ApplicationLoaderException("Failed to load application '$applicationName' - no such folder");
@@ -65,12 +64,22 @@ class ApplicationLoader
 	/**
 	 * Set main application
 	 * @param string $applicationIdentifier
+	 * @throws ApplicationLoaderException
 	 */
 	public function SetMainApplication($applicationIdentifier)
 	{
+		if (!is_null($this->mainApplicationIdentifier))
+			throw new ApplicationLoaderException('Trying to set main application multiple times');
+
 		$this->mainApplicationIdentifier = $applicationIdentifier;
 	}
 
+	/**
+	 * Load application and all its related files
+	 * @param string|null $applicationName | use main application
+	 * @return string
+	 * @throws ApplicationLoaderException
+	 */
 	public function Load($applicationName = null)
 	{
 		$applicationName = $this->validateApplicationName($applicationName);
@@ -80,11 +89,18 @@ class ApplicationLoader
 		$applicationMainFile = $applicationDirectory . $applicationName . self::ApplicationFileSuffix;
 		require_once $applicationMainFile;
 
+		// Validate application
+		if (!OnePHP::ClassImplements($applicationName, self::ApplicationInterface))
+			throw new ApplicationLoaderException("Invalid application found '$applicationName' - application does not implement required '" . self::ApplicationInterface . "'");
+
 		// Load configuration
 		$applicationConfigurationFile = $applicationDirectory . $applicationName . self::ApplicationConfigurationFileSuffix;
 		$this->configHandler->AddConfigurationFromFile($applicationConfigurationFile);
 
-		return $this->di->AutoWire($applicationName);
+		$this->pluginLoader->SetApplicationDirectory($applicationDirectory);
+		$this->pluginLoader->LoadAll();
+
+		return $applicationName;
 	}
 
 	public function IsLoaded()
@@ -92,9 +108,11 @@ class ApplicationLoader
 		return false;
 	}
 
-	public function Run()
+	public function Run($applicationName = null)
 	{
+		$applicationName = $this->Load($applicationName);
 
+		$this->di->AutoWire($applicationName);
 	}
 }
 

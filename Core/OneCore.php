@@ -156,7 +156,7 @@ class OneCore
 			return [
 				'The ConfigHandler was not initialized when the exception occurred',
 				'The Exception occurred in the ConfigHandler',
-				'There was an error reading or parsing the default configuration (' . self::DefaultConfigFile .  ')',
+				'There was an error reading or parsing the default configuration (' . self::DefaultConfigFile . ')',
 				'You have failed on your quest to properly configure exception handling'
 			];
 
@@ -233,7 +233,8 @@ class OneCore
 	 * Is debug mode enabled
 	 * @return bool
 	 */
-	public static function IsDebug() {
+	public static function IsDebug()
+	{
 		return (bool)self::GetConfig(self::Config_Debug);
 	}
 
@@ -243,7 +244,6 @@ class OneCore
 	public static function Run()
 	{
 		self::Instance()->ApplicationLoader->SetMainApplication(self::GetConfig(self::Config_MainApplicationIdentifier));
-		self::Instance()->ApplicationLoader->Load();
 		self::Instance()->ApplicationLoader->Run();
 	}
 }

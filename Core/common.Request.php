@@ -32,7 +32,7 @@ class Request implements IRequest
 	 */
 	private function getRequestParameterName()
 	{
-		return $this->configHandler->Get(self::Config_RequestParamName) ?: self::DefaultRequestParamName;
+		return $this->configHandler->Get(self::Config_RequestParamName, self::DefaultRequestParamName);
 	}
 
 	/**
