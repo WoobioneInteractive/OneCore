@@ -15,7 +15,7 @@ class OneCore
 	// Configuration options
 	const Config_Debug = 'onecore.debug';
 	const Config_ExceptionHandler = 'onecore.exceptionHandler';
-	const Config_ApplicationIdentifier = 'onecore.applicationIdentifier';
+	const Config_MainApplicationIdentifier = 'onecore.mainApplicationIdentifier';
 
 	// Internal constants
 	const CoreFilePrefix = 'core.';
@@ -26,7 +26,7 @@ class OneCore
 	const ExceptionHandlerInterface = 'IExceptionHandler';
 	const ExceptionHandlerMethod = 'HandleException';
 	const ConfigHandlerInterface = 'IConfigHandler';
-	const ApplicationInterface = 'IApplication';
+	const ApplicationLoader = 'ApplicationLoader';
 
 	/**
 	 * @var OneCore
@@ -49,19 +49,9 @@ class OneCore
 	public $DependencyInjector = null;
 
 	/**
-	 * @var PluginLoader
-	 */
-	public $PluginLoader = null;
-
-	/**
 	 * @var ApplicationLoader
 	 */
 	public $ApplicationLoader = null;
-
-	/**
-	 * @var IApplication
-	 */
-	public $Application = null;
 
 	/**
 	 * Get singleton instance of OneCore
@@ -94,9 +84,8 @@ class OneCore
 			]);
 			$this->DependencyInjector->AddAutowiredMapping('DependencyMappingFromConfig');
 
-			// Register plugin & application loader
-			$this->PluginLoader = $this->DependencyInjector->AutoWire('PluginLoader');
-			$this->ApplicationLoader = $this->DependencyInjector->AutoWire('ApplicationLoader');
+			// Register application loader
+			$this->ApplicationLoader = $this->DependencyInjector->AutoWire(self::ApplicationLoader);
 
 			// All done!
 			$this->coreLoaded = true;
@@ -174,7 +163,7 @@ class OneCore
 		if (!class_exists($className))
 			return ["Selected exception handler '<i>$className</i>' does not exist"];
 
-		if (!OC::ClassImplements($className, self::ExceptionHandlerInterface))
+		if (!OnePHP::ClassImplements($className, self::ExceptionHandlerInterface))
 			return ["Selected exception handler '<i>$className</i>' does not implement interface '<i>" . self::ExceptionHandlerInterface . "</i>'"];
 
 		return true;
@@ -233,6 +222,7 @@ class OneCore
 	/**
 	 * Instantiate class using dependency injector
 	 * @param $className string
+	 * @return object instance
 	 */
 	public static function Autowire($className)
 	{
@@ -249,20 +239,12 @@ class OneCore
 
 	/**
 	 * Runs application
-	 * @param $applicationName string
-	 * @throws CoreException
 	 */
-	public static function Run($applicationName = null)
+	public static function Run()
 	{
-		// If application name not specified - run configured application
-		if (empty($applicationName))
-			$applicationName = self::GetConfig(self::Config_ApplicationIdentifier);
-
-		if (!is_dir($applicationName))
-			throw new CoreException("No such application '$applicationName'");
-
-		self::Instance()->Application = self::Instance()->ApplicationLoader->Load($applicationName);
-		//self::Instance()->Application->Run();
+		self::Instance()->ApplicationLoader->SetMainApplication(self::GetConfig(self::Config_MainApplicationIdentifier));
+		self::Instance()->ApplicationLoader->Load();
+		self::Instance()->ApplicationLoader->Run();
 	}
 }
 

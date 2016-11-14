@@ -27,6 +27,6 @@ class DependencyMappingFromConfig implements IDependencyMapping
 	 */
 	public function GetMap()
 	{
-		return $this->configHandler->Get(DependencyInjector::Config_Mapping);
+		return $this->configHandler->Get(DependencyInjector::Config_Mapping, []);
 	}
 }

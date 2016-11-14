@@ -3,7 +3,7 @@
 /**
  * Config handler
  * @version 1.0
- * @uses OC [Helpers for OneCore]
+ * @uses OnePHP [Helpers for OneCore]
  */
 class ConfigHandler implements IConfigHandler
 {
@@ -66,11 +66,23 @@ class ConfigHandler implements IConfigHandler
 	 * Get the configuration value for $configKey
 	 * Returns false if key doesn't exist
 	 * @param string $configKey
+	 * @param mixed $valueIfNotExists
 	 * @return mixed
 	 */
-	public function Get($configKey)
+	public function Get($configKey, $valueIfNotExists = false)
 	{
-		return OC::ValueIfExists($configKey, $this->configuration, false);
+		return OnePHP::ValueIfExists($configKey, $this->configuration, $valueIfNotExists);
+	}
+
+	/**
+	 * Set value for key
+	 * @param $configKey string
+	 * @param $value mixed
+	 */
+	public function Set($configKey, $value) {
+		$this->AddConfiguration([
+			$configKey => $value
+		]);
 	}
 }
 

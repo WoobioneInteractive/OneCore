@@ -3,8 +3,14 @@
 /**
  *
  */
-class PluginLoader
+class PluginLoader implements IPluginLoader
 {
+
+	const Config_PluginDirectory = 'pluginloader.pluginDirectory';
+	const Config_AutoloadPlugins = 'pluginloader.autoloadPlugins';
+
+	const DefaultPluginDirectory = 'Plugins';
+
 	/**
 	 * @var IConfigHandler|null
 	 */
@@ -23,7 +29,6 @@ class PluginLoader
 	{
 		if (is_null($directoryName))
 			return;
-
 
 	}
 

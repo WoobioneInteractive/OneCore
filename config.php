@@ -1,9 +1,10 @@
 <?php return [
 
 	// Core attributes
-	OneCore::Config_Debug => true,
+	OneCore::Config_Debug => 						true,
+	OneCore::Config_MainApplicationIdentifier =>	'OneTrack',
 
-	// Application
-	OneCore::Config_ApplicationIdentifier => 'OneTrack',
+	// Request
+	Request::Config_RequestParamName		=> ''
 
 ];

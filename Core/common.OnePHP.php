@@ -3,7 +3,7 @@
 /**
  * Helper functions for OneCore
  */
-class OC
+class OnePHP
 {
 
 	/**
