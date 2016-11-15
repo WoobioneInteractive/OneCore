@@ -97,6 +97,7 @@ class ApplicationLoader
 		$applicationConfigurationFile = $applicationDirectory . $applicationName . self::ApplicationConfigurationFileSuffix;
 		$this->configHandler->AddConfigurationFromFile($applicationConfigurationFile);
 
+		// Load plugins
 		$this->pluginLoader->SetApplicationDirectory($applicationDirectory);
 		$this->pluginLoader->LoadAll();
 

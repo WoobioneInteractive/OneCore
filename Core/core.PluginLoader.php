@@ -10,7 +10,9 @@ class PluginLoader implements IPluginLoader
 	const Config_AutoloadPlugins = 'pluginloader.autoloadPlugins';
 
 	// Internal constants
+	const PluginInterface = 'IPlugin';
 	const DefaultPluginDirectory = 'Plugins';
+	const PluginFileSuffix = '.php';
 
 	/**
 	 * @var IConfigHandler
@@ -18,9 +20,24 @@ class PluginLoader implements IPluginLoader
 	private $configHandler = null;
 
 	/**
+	 * @var DependencyInjector
+	 */
+	private $di = null;
+
+	/**
+	 * @var IFileAutoLoader
+	 */
+	private $fileAutoLoader = null;
+
+	/**
 	 * @var string
 	 */
 	private $applicationDirectory = null;
+
+	/**
+	 * @var array
+	 */
+	private $installedPlugins = [];
 
 	/**
 	 * @var array
@@ -31,22 +48,112 @@ class PluginLoader implements IPluginLoader
 	 * PluginLoader constructor.
 	 * @param IConfigHandler $configHandler
 	 */
-	public function __construct(IConfigHandler $configHandler)
+	public function __construct(IConfigHandler $configHandler, DependencyInjector $di, IFileAutoLoader $fileAutoLoader)
 	{
 		$this->configHandler = $configHandler;
+		$this->di = $di;
+		$this->fileAutoLoader = $fileAutoLoader;
 	}
 
 	/**
 	 * Get plugin directory
+	 * @param string|null $pluginName If provided - get directory for specific plugin. Otherwise get main plugin directory
 	 * @return string
 	 * @throws PluginLoaderException
 	 */
-	private function getPluginDirectory()
+	private function getPluginDirectory($pluginName = null)
 	{
 		if (is_null($this->applicationDirectory))
 			throw new PluginLoaderException('Failed to find plugin directory - no application directory supplied');
 
-		return $this->applicationDirectory . $this->configHandler->Get(self::Config_PluginDirectory, self::DefaultPluginDirectory);
+		$mainDirectory = $this->applicationDirectory . $this->configHandler->Get(self::Config_PluginDirectory, self::DefaultPluginDirectory) . DIRECTORY_SEPARATOR;
+
+		return $mainDirectory . ($pluginName ? $pluginName . DIRECTORY_SEPARATOR : '');
+	}
+
+	/**
+	 * @param string $pluginName
+	 * @return string
+	 * @throws PluginLoaderException
+	 */
+	public function getPluginFilePath($pluginName)
+	{
+		$pluginFilePath = $this->getPluginDirectory($pluginName) . $pluginName . self::PluginFileSuffix;
+		if (!file_exists($pluginFilePath))
+			throw new PluginLoaderException("Invalid plugin '$pluginName' - folder contains no main file '$pluginName" . self::PluginFileSuffix . "'");
+
+		return $pluginFilePath;
+	}
+
+	/**
+	 * @return string[] Installed plugin names
+	 * @throws PluginLoaderException
+	 */
+	private function getInstalledPlugins()
+	{
+		if (empty($this->installedPlugins)) {
+			foreach(scandir($this->getPluginDirectory()) as $pluginName) {
+				if (in_array($pluginName, array('.', '..')))
+					continue;
+
+				$pluginFilePath = $this->getPluginFilePath($pluginName);
+				require_once $pluginFilePath;
+
+				if (!class_exists($pluginName))
+					throw new PluginLoaderException("Plugin '$pluginName' contains no class with the same name");
+
+				if (!OnePHP::ClassImplements($pluginName, self::PluginInterface))
+					throw new PluginLoaderException("Plugin '$pluginName' does not implement interface '" . self::PluginInterface . "'");
+
+				$this->installedPlugins[$pluginName] = $pluginFilePath;
+			}
+		}
+
+		return $this->installedPlugins;
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function getLoadedPlugins()
+	{
+		return $this->loadedPlugins;
+	}
+
+	/**
+	 * @param string $pluginName
+	 * @return bool
+	 */
+	private function pluginIsInstalled($pluginName)
+	{
+		return array_key_exists($pluginName, $this->getInstalledPlugins());
+	}
+
+	/**
+	 * @param string $pluginName
+	 * @return bool
+	 */
+	private function pluginIsLoaded($pluginName)
+	{
+		return array_key_exists($pluginName, $this->getLoadedPlugins());
+	}
+
+	/**
+	 * @param string $pluginName
+	 * @param IPlugin $pluginInstance
+	 */
+	private function setPluginLoaded($pluginName, IPlugin $pluginInstance)
+	{
+		$this->loadedPlugins[$pluginName] = $pluginInstance;
+	}
+
+	/**
+	 * @param string $pluginName
+	 * @return IPlugin
+	 */
+	private function getLoadedPlugin($pluginName)
+	{
+		return $this->getLoadedPlugins()[$pluginName];
 	}
 
 	/**
@@ -57,27 +164,47 @@ class PluginLoader implements IPluginLoader
 	public function SetApplicationDirectory($applicationDirectory)
 	{
 		if (!is_null($this->applicationDirectory))
-			throw new PluginLoaderException('Trying to change plugin application directory in run time - that is not a good idea');
+			throw new PluginLoaderException("Trying to change plugin application directory in run time - that's not a good idea");
 
 		$this->applicationDirectory = $applicationDirectory;
 	}
 
+	/**
+	 * Load all plugins in directory
+	 */
 	public function LoadAll()
 	{
-		foreach(scandir($this->getPluginDirectory()) as $directory) {
-			if (in_array($directory, array('.', '..')))
-				continue;
-
-			var_dump($directory);
+		foreach ($this->getInstalledPlugins() as $name => $filePath) {
+			$this->Load($name);
 		}
 	}
 
 	/**
 	 * @param string $pluginName
+	 * @return IPlugin
+	 * @throws PluginLoaderException
 	 */
 	public function Load($pluginName)
 	{
+		if (!$this->pluginIsInstalled($pluginName))
+			throw new PluginLoaderException("No plugin with name '$pluginName' is installed");
 
+		if (!$this->pluginIsLoaded($pluginName)) {
+			// Register autoloader for additional files
+			$this->fileAutoLoader->AddFromDirectory($this->getPluginDirectory($pluginName), strtolower($pluginName) . '.{class}');
+
+			$pluginInstance = $this->di->AutoWire($pluginName);
+
+			$this->di->AddMapping(new DependencyMappingFromArray([
+				$pluginName => [
+					DependencyInjector::Mapping_RemoteInstance => $pluginInstance
+				]
+			]));
+
+			$this->setPluginLoaded($pluginName, $pluginInstance);
+		}
+
+		return $this->getLoadedPlugin($pluginName);
 	}
 
 }
