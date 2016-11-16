@@ -93,12 +93,14 @@ class ApplicationLoader
 		if (!OnePHP::ClassImplements($applicationName, self::ApplicationInterface))
 			throw new ApplicationLoaderException("Invalid application found '$applicationName' - application does not implement required '" . self::ApplicationInterface . "'");
 
+		// Configure plugins
+		$this->pluginLoader->SetApplicationDirectory($applicationDirectory);
+
 		// Load configuration
 		$applicationConfigurationFile = $applicationDirectory . $applicationName . self::ApplicationConfigurationFileSuffix;
 		$this->configHandler->AddConfigurationFromFile($applicationConfigurationFile);
 
 		// Load plugins
-		$this->pluginLoader->SetApplicationDirectory($applicationDirectory);
 		$this->pluginLoader->LoadAll();
 
 		return $applicationName;

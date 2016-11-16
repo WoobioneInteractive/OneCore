@@ -63,10 +63,10 @@ class PluginLoader implements IPluginLoader
 	 */
 	private function getPluginDirectory($pluginName = null)
 	{
-		if (is_null($this->applicationDirectory))
+		if (is_null($this->GetApplicationDirectory()))
 			throw new PluginLoaderException('Failed to find plugin directory - no application directory supplied');
 
-		$mainDirectory = $this->applicationDirectory . $this->configHandler->Get(self::Config_PluginDirectory, self::DefaultPluginDirectory) . DIRECTORY_SEPARATOR;
+		$mainDirectory = $this->GetApplicationDirectory() . $this->configHandler->Get(self::Config_PluginDirectory, self::DefaultPluginDirectory) . DIRECTORY_SEPARATOR;
 
 		return $mainDirectory . ($pluginName ? $pluginName . DIRECTORY_SEPARATOR : '');
 	}
@@ -167,6 +167,17 @@ class PluginLoader implements IPluginLoader
 			throw new PluginLoaderException("Trying to change plugin application directory in run time - that's not a good idea");
 
 		$this->applicationDirectory = $applicationDirectory;
+
+		// Find all installed plugins in directory
+		$this->getInstalledPlugins();
+	}
+
+	/**
+	 * @return string
+	 */
+	public function GetApplicationDirectory()
+	{
+		return $this->applicationDirectory;
 	}
 
 	/**

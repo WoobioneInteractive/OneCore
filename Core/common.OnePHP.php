@@ -27,4 +27,31 @@ class OnePHP
 		return is_string($class) ? in_array($interfaceName, class_implements($class)) : is_a($class, $interfaceName);
 	}
 
+	/**
+	 * Check if $haystack begins with $needle
+	 * @param string $haystack
+	 * @param string $needle
+	 * @return bool
+	 */
+	public static function StringBeginsWith($haystack, $needle)
+	{
+		$length = strlen($needle);
+		return (substr($haystack, 0, $length) === $needle);
+	}
+
+	/**
+	 * Check if $haystack ends with $needle
+	 * @param string $haystack
+	 * @param string $needle
+	 * @return bool
+	 */
+	public static function StringEndsWith($haystack, $needle)
+	{
+		$length = strlen($needle);
+		if ($length == 0)
+			return true;
+
+		return (substr($haystack, -$length) === $needle);
+	}
+
 }

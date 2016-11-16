@@ -10,8 +10,14 @@ class FileAutoLoader implements IFileAutoLoader
 	 */
 	public function AddFromDirectory($directoryPath, $pattern = null)
 	{
+		if (!OnePHP::StringEndsWith($directoryPath, DIRECTORY_SEPARATOR))
+			$directoryPath .= DIRECTORY_SEPARATOR;
+
 		spl_autoload_register(function($className) use($directoryPath, $pattern) {
-			require_once $directoryPath . str_ireplace('{class}', $className, $pattern) . self::FileSuffix;
+			$classFile = $directoryPath . str_ireplace('{class}', $className, $pattern) . self::FileSuffix;
+
+			if (file_exists($classFile))
+				require_once $classFile;
 		});
 	}
 }
