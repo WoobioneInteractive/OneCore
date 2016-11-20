@@ -5,6 +5,7 @@
  */
 class OnePHP
 {
+	const PHPFileExtension = '.php';
 
 	/**
 	 * @param string $key

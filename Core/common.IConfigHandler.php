@@ -21,5 +21,5 @@ interface IConfigHandler
 	 * @param mixed $valueIfNotExists
 	 * @return mixed
 	 */
-	public function Get($configKey, $valueIfNotExists);
+	public function Get($configKey, $valueIfNotExists = false);
 }

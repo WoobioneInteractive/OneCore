@@ -1,6 +1,6 @@
 <?php
 
-interface IPlugin
+interface IPlugin extends IDependencyInjectable
 {
 	/**
 	 * @return bool|string Autoload child files | Custom child file pattern

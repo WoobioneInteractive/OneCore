@@ -21,6 +21,7 @@ class DependencyInjector
 	// Internal constants
 	const InterfacePrefix = 'I';
 	const DependencyMappingInterface = 'IDependencyMapping';
+	const DependencyInjectableInterface = 'IDependencyInjectable';
 
 	/**
 	 * @var IDependencyMapping[]
@@ -131,11 +132,12 @@ class DependencyInjector
 		$constructor = $class->getConstructor();
 		$parameters = $constructor ? $constructor->getParameters() : [];
 
+		// TODO: Change to foreach - supposed to be faster
 		array_walk($parameters, function (&$parameter) {
 			$parameterReflection = $parameter->getClass();
 			$interfaceName = $parameterReflection ? $parameterReflection->getName() : null;
 
-			if (interface_exists($interfaceName)) {
+			if (interface_exists($interfaceName) || OnePHP::ClassImplements($interfaceName, self::DependencyInjectableInterface)) {
 				$parameter = $this->resolve($interfaceName);
 			} else if ($interfaceName == __CLASS__) {
 				$parameter = $this;

@@ -6,6 +6,7 @@
 class PluginLoader implements IPluginLoader
 {
 	// Configuration options
+	const Config_Plugins = 'pluginloader.plugins';
 	const Config_PluginDirectory = 'pluginloader.pluginDirectory';
 	const Config_AutoloadPlugins = 'pluginloader.autoloadPlugins';
 
@@ -186,7 +187,8 @@ class PluginLoader implements IPluginLoader
 	public function LoadAll()
 	{
 		foreach ($this->getInstalledPlugins() as $name => $filePath) {
-			$this->Load($name);
+			if (in_array($name, $this->configHandler->Get(self::Config_Plugins, [])))
+				$this->Load($name);
 		}
 	}
 

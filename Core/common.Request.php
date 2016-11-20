@@ -10,6 +10,13 @@ class Request implements IRequest
 	// Configuration options
 	const Config_RequestParamName = 'request.requestParamName';
 
+	// Request methods
+	const Method_Get = 'GET';
+	const Method_Post = 'POST';
+	const Method_Put = 'PUT';
+	const Method_Patch = 'PATCH';
+	const Method_Delete = 'DELETE';
+
 	// Internal constants
 	const DefaultRequestParamName = 'request';
 
@@ -40,6 +47,12 @@ class Request implements IRequest
 	 */
 	public function GetRequestString()
 	{
+		//print_r($_SERVER);
 		return filter_input(INPUT_GET, $this->getRequestParameterName(), FILTER_SANITIZE_URL);
+	}
+
+	public function GetMethod()
+	{
+		return $_SERVER['REQUEST_METHOD'];
 	}
 }
