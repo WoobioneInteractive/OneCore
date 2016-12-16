@@ -1,6 +1,6 @@
 <?php
 
-interface IConfigHandler
+interface IConfigHandler extends IConfiguration
 {
 	/**
 	 * Add an array of values to the configuration
