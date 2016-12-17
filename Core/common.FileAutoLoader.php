@@ -13,7 +13,7 @@ class FileAutoLoader implements IFileAutoLoader
 		if (!OnePHP::StringEndsWith($directoryPath, DIRECTORY_SEPARATOR))
 			$directoryPath .= DIRECTORY_SEPARATOR;
 
-		spl_autoload_register(function($className) use($directoryPath, $pattern) {
+		spl_autoload_register(function($className) use ($directoryPath, $pattern) {
 			$classFile = $directoryPath . str_ireplace('{class}', $className, $pattern) . self::FileSuffix;
 
 			if (file_exists($classFile))

@@ -16,6 +16,7 @@ class Request implements IRequest
 	const Method_Put = 'PUT';
 	const Method_Patch = 'PATCH';
 	const Method_Delete = 'DELETE';
+	const Method_Options = 'OPTIONS';
 
 	// Internal constants
 	const DefaultRequestParamName = 'request';
@@ -51,8 +52,23 @@ class Request implements IRequest
 		return filter_input(INPUT_GET, $this->getRequestParameterName(), FILTER_SANITIZE_URL);
 	}
 
+	/**
+	 * Get request method
+	 * @return string i.e. Method_Get
+	 */
 	public function GetMethod()
 	{
 		return $_SERVER['REQUEST_METHOD'];
+	}
+
+	/**
+	 * Get data from request
+	 * @param string $key
+	 * @param string $from Specify where to get data from i.e. Method_Get
+	 * @return string
+	 */
+	public function Data($key = null, $from = null) {
+		$data = ($from == self::Method_Get || $this->GetMethod() == self::Method_Get ? $_GET : $_POST);
+		return OnePHP::ValueIfExists($key, $data, $data);
 	}
 }

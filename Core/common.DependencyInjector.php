@@ -68,6 +68,9 @@ class DependencyInjector
 		$loadOnlyOnce = OnePHP::ValueIfExists(self::Mapping_LoadOnlyOnce, $dependencyMapping, true);
 		$dependencyInstance = $remoteInstance ?: $this->AutoWire($resolveTo);
 
+		if (is_callable($dependencyInstance))
+			$dependencyInstance = $dependencyInstance($this);
+
 		if (!is_a($dependencyInstance, $interfaceName))
 			throw new DependencyInjectorException("Resolved instance for '$interfaceName' does not implement said interface");
 

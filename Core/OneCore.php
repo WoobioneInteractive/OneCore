@@ -26,6 +26,7 @@ class OneCore
 	const ExceptionHandlerInterface = 'IExceptionHandler';
 	const ExceptionHandlerMethod = 'HandleException';
 	const ConfigHandlerInterface = 'IConfigHandler';
+	const ConfigurationInterface = 'IConfiguration';
 	const ApplicationLoader = 'ApplicationLoader';
 
 	/**
@@ -79,6 +80,9 @@ class OneCore
 			// Register dependency injector
 			$this->DependencyInjector = new DependencyInjector([
 				self::ConfigHandlerInterface => [
+					DependencyInjector::Mapping_RemoteInstance => $this->ConfigHandler
+				],
+				self::ConfigurationInterface => [
 					DependencyInjector::Mapping_RemoteInstance => $this->ConfigHandler
 				]
 			]);
