@@ -6,9 +6,6 @@ define('ONECORE_VERSION', '1.0-beta');
 /**
  * This is the core itself. This is where the magic happens
  * Author: Anton Netterwall <netterwall@gmail.com>
- * @uses ConfigHandler
- * @uses DependencyInjector
- * @uses DependencyMappingFromConfig
  */
 class OneCore
 {
@@ -22,12 +19,6 @@ class OneCore
 	const CommonFilePrefix = 'common.';
 	const FileSuffix = '.php';
 	const DefaultConfigFile = 'OneCore.Config.php';
-	const CoreExceptionType = 'CoreException';
-	const ExceptionHandlerInterface = 'IExceptionHandler';
-	const ExceptionHandlerMethod = 'HandleException';
-	const ConfigHandlerInterface = 'IConfigHandler';
-	const ConfigurationInterface = 'IConfiguration';
-	const ApplicationLoader = 'ApplicationLoader';
 
 	/**
 	 * @var OneCore
@@ -79,17 +70,17 @@ class OneCore
 
 			// Register dependency injector
 			$this->DependencyInjector = new DependencyInjector([
-				self::ConfigHandlerInterface => [
+				IConfigHandler::class => [
 					DependencyInjector::Mapping_RemoteInstance => $this->ConfigHandler
 				],
-				self::ConfigurationInterface => [
+				IConfiguration::class => [
 					DependencyInjector::Mapping_RemoteInstance => $this->ConfigHandler
 				]
 			]);
-			$this->DependencyInjector->AddAutowiredMapping('DependencyMappingFromConfig');
+			$this->DependencyInjector->AddAutowiredMapping(DependencyMappingFromConfig::class);
 
 			// Register application loader
-			$this->ApplicationLoader = $this->DependencyInjector->AutoWire(self::ApplicationLoader);
+			$this->ApplicationLoader = $this->DependencyInjector->AutoWire(ApplicationLoader::class);
 
 			// All done!
 			$this->coreLoaded = true;
@@ -130,7 +121,7 @@ class OneCore
 	private function registerExceptionHandler()
 	{
 		set_exception_handler(function (Exception $e) {
-			$e = !is_a($e, self::CoreExceptionType) ? $e : new Exception($e->getMessage());
+			$e = !is_a($e, CoreException::class) ? $e : new Exception($e->getMessage());
 			$customExceptionHandler = $this->ConfigHandler ? $this->ConfigHandler->Get(self::Config_ExceptionHandler) : null;
 			$exceptionHandlerValidation = $this->validateExceptionHandler($customExceptionHandler);
 			if ($exceptionHandlerValidation !== true) {
@@ -138,7 +129,7 @@ class OneCore
 			} else {
 				call_user_func_array([
 					$customExceptionHandler,
-					self::ExceptionHandlerMethod
+					'HandleException'
 				], array($e));
 			}
 		});
@@ -167,8 +158,8 @@ class OneCore
 		if (!class_exists($className))
 			return ["Selected exception handler '<i>$className</i>' does not exist"];
 
-		if (!OnePHP::ClassImplements($className, self::ExceptionHandlerInterface))
-			return ["Selected exception handler '<i>$className</i>' does not implement interface '<i>" . self::ExceptionHandlerInterface . "</i>'"];
+		if (!OnePHP::ClassImplements($className, IExceptionHandler::class))
+			return ["Selected exception handler '<i>$className</i>' does not implement interface '<i>" . IExceptionHandler::class . "</i>'"];
 
 		return true;
 	}
@@ -224,16 +215,6 @@ class OneCore
 	}
 
 	/**
-	 * Instantiate class using dependency injector
-	 * @param $className string
-	 * @return object instance
-	 */
-	public static function Autowire($className)
-	{
-		return self::Instance()->DependencyInjector->AutoWire($className);
-	}
-
-	/**
 	 * Is debug mode enabled
 	 * @return bool
 	 */
@@ -244,11 +225,15 @@ class OneCore
 
 	/**
 	 * Runs application
+	 * @param string|null $applicationName
 	 */
-	public static function Run()
+	public static function Run($applicationName = null)
 	{
-		self::Instance()->ApplicationLoader->SetMainApplication(self::GetConfig(self::Config_MainApplicationIdentifier));
-		self::Instance()->ApplicationLoader->Run();
+		$applicationName = $applicationName ?: self::GetConfig(self::Config_MainApplicationIdentifier);
+		if (!self::Instance()->ApplicationLoader->IsLoaded($applicationName)) {
+			$applicationContext = self::Instance()->ApplicationLoader->Load($applicationName);
+			$applicationContext->Execute();
+		}
 	}
 }
 

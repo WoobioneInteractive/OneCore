@@ -2,34 +2,37 @@
 
 /**
  * Class ApplicationLoader
- * @uses IApplication
  */
 class ApplicationLoader
 {
 	// Internal constants
 	const ApplicationConfigurationFileSuffix = '.Config.php';
 	const ApplicationFileSuffix = '.php';
-	const ApplicationInterface = 'IApplication';
 
 	/**
 	 * @var DependencyInjector
 	 */
-	private $di = null;
+	private $di;
 
 	/**
 	 * @var IConfigHandler
 	 */
-	private $configHandler = null;
+	private $configHandler;
 
 	/**
 	 * @var IPluginLoader
 	 */
-	private $pluginLoader = null;
+	private $pluginLoader;
 
 	/**
-	 * @var string
+	 * @var IApplicationFactory
 	 */
-	private $mainApplicationIdentifier = null;
+	private $applicationFactory;
+
+	/**
+	 * @var ApplicationContext[]
+	 */
+	private $loadedApplications = [];
 
 	/**
 	 * ApplicationLoader constructor.
@@ -42,80 +45,54 @@ class ApplicationLoader
 		$this->di = $di;
 		$this->configHandler = $configHandler;
 		$this->pluginLoader = $pluginLoader;
-	}
-
-	/**
-	 * @param string $applicationName
-	 * @return string Application name
-	 * @throws ApplicationLoaderException
-	 */
-	private function validateApplicationName($applicationName) {
-		if (is_null($this->mainApplicationIdentifier))
-			throw new ApplicationLoaderException("No main application configured when trying to run application '$applicationName'");
-
-		$applicationName = $applicationName ?: $this->mainApplicationIdentifier;
-
-		if (!is_dir($applicationName))
-			throw new ApplicationLoaderException("Failed to load application '$applicationName' - no such folder");
-
-		return $applicationName;
-	}
-
-	/**
-	 * Set main application
-	 * @param string $applicationIdentifier
-	 * @throws ApplicationLoaderException
-	 */
-	public function SetMainApplication($applicationIdentifier)
-	{
-		if (!is_null($this->mainApplicationIdentifier))
-			throw new ApplicationLoaderException('Trying to set main application multiple times');
-
-		$this->mainApplicationIdentifier = $applicationIdentifier;
+		$this->applicationFactory = new AutowiredApplicationFactory($this->di);
 	}
 
 	/**
 	 * Load application and all its related files
-	 * @param string|null $applicationName | use main application
-	 * @return string
+	 * @param string $applicationName
+	 * @return ApplicationContext
 	 * @throws ApplicationLoaderException
 	 */
-	public function Load($applicationName = null)
+	public function Load($applicationName)
 	{
-		$applicationName = $this->validateApplicationName($applicationName);
-		$applicationDirectory = $applicationName . DIRECTORY_SEPARATOR;
+		if (!$this->IsLoaded($applicationName)) {
+			// Validate folder
+			$applicationDirectory = $applicationName . DIRECTORY_SEPARATOR;
+			if (!is_dir($applicationName))
+				throw new ApplicationLoaderException("Could not load application '$applicationName'. There is no folder named '$applicationDirectory'.");
 
-		// Load application main file
-		$applicationMainFile = $applicationDirectory . $applicationName . self::ApplicationFileSuffix;
-		require_once $applicationMainFile;
+			// Load application main file
+			$applicationMainFile = $applicationDirectory . $applicationName . self::ApplicationFileSuffix;
+			if (!file_exists($applicationMainFile))
+				throw new ApplicationLoaderException("Could not load application '$applicationName'. No application main file exists '$applicationMainFile'.");
+			require_once $applicationMainFile;
 
-		// Validate application
-		if (!OnePHP::ClassImplements($applicationName, self::ApplicationInterface))
-			throw new ApplicationLoaderException("Invalid application found '$applicationName' - application does not implement required '" . self::ApplicationInterface . "'");
+			// Create application context
+			$this->loadedApplications[$applicationName] = new ApplicationContext($applicationName, $applicationDirectory, $this->applicationFactory);
 
-		// Configure plugins
-		$this->pluginLoader->SetApplicationDirectory($applicationDirectory);
+			// Configure plugins
+			$this->pluginLoader->SetApplicationDirectory($applicationDirectory);
 
-		// Load configuration
-		$applicationConfigurationFile = $applicationDirectory . $applicationName . self::ApplicationConfigurationFileSuffix;
-		$this->configHandler->AddConfigurationFromFile($applicationConfigurationFile);
+			// Load configuration
+			$applicationConfigurationFile = $applicationDirectory . $applicationName . self::ApplicationConfigurationFileSuffix;
+			$this->configHandler->AddConfigurationFromFile($applicationConfigurationFile);
 
-		// Load plugins
-		$this->pluginLoader->LoadAll();
+			// Load plugins
+			$this->pluginLoader->LoadAll();
+		}
 
-		return $applicationName;
+		return $this->loadedApplications[$applicationName];
 	}
 
-	public function IsLoaded()
+	/**
+	 * See if application is loaded
+	 * @param string $applicationName
+	 * @return bool
+	 */
+	public function IsLoaded($applicationName)
 	{
-		return false;
-	}
-
-	public function Run($applicationName = null)
-	{
-		$applicationName = $this->Load($applicationName);
-
-		$this->di->AutoWire($applicationName);
+		return array_key_exists($applicationName, $this->loadedApplications);
 	}
 }
 
