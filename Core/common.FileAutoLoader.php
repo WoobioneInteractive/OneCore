@@ -6,9 +6,9 @@ class FileAutoLoader implements IFileAutoLoader
 
 	/**
 	 * @param string $directoryPath
-	 * @param string|null $pattern
+	 * @param string $pattern
 	 */
-	public function AddFromDirectory($directoryPath, $pattern = null)
+	public function AddFromDirectory($directoryPath, $pattern = '{class}')
 	{
 		if (!OnePHP::StringEndsWith($directoryPath, DIRECTORY_SEPARATOR))
 			$directoryPath .= DIRECTORY_SEPARATOR;

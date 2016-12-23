@@ -36,8 +36,7 @@ class OnePHP
 	 */
 	public static function StringBeginsWith($haystack, $needle)
 	{
-		$length = strlen($needle);
-		return (substr($haystack, 0, $length) === $needle);
+		return (substr($haystack, 0, strlen($needle)) === $needle);
 	}
 
 	/**
@@ -55,4 +54,33 @@ class OnePHP
 		return (substr($haystack, -$length) === $needle);
 	}
 
+	/**
+	 * Replace $needle in beginning of $string with $replaceBeginningWith
+	 * @param string $string
+	 * @param string $needle
+	 * @param string $replaceBeginningWith
+	 * @return string
+	 */
+	public static function StringReplaceBeginning($string, $needle, $replaceBeginningWith = '')
+	{
+		if (self::StringBeginsWith($string, $needle))
+			$string = $replaceBeginningWith . substr($string, strlen($needle));
+
+		return $string;
+	}
+
+	/**
+	 * Replace $needle in end of $string with $replaceBeginningWith
+	 * @param string $string
+	 * @param string $needle
+	 * @param string $replaceEndWith
+	 * @return string
+	 */
+	public static function StringReplaceEnd($string, $needle, $replaceEndWith = '') {
+		$length = strlen($needle);
+		if (self::StringEndsWith($string, $needle) && $length)
+			$string = substr($string, 0, -$length) . $replaceEndWith;
+
+		return $string;
+	}
 }

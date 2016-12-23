@@ -10,7 +10,7 @@ class ApplicationLoader
 	const ApplicationFileSuffix = '.php';
 
 	/**
-	 * @var DependencyInjector
+	 * @var IDependencyContainer
 	 */
 	private $di;
 
@@ -36,11 +36,11 @@ class ApplicationLoader
 
 	/**
 	 * ApplicationLoader constructor.
-	 * @param DependencyInjector $di
+	 * @param IDependencyContainer $di
 	 * @param IConfigHandler $configHandler
 	 * @param IPluginLoader $pluginLoader
 	 */
-	public function __construct(DependencyInjector $di, IConfigHandler $configHandler, IPluginLoader $pluginLoader)
+	public function __construct(IDependencyContainer $di, IConfigHandler $configHandler, IPluginLoader $pluginLoader)
 	{
 		$this->di = $di;
 		$this->configHandler = $configHandler;

@@ -21,7 +21,7 @@ class PluginLoader implements IPluginLoader
 	private $configHandler = null;
 
 	/**
-	 * @var DependencyInjector
+	 * @var IDependencyContainer
 	 */
 	private $di = null;
 
@@ -49,7 +49,7 @@ class PluginLoader implements IPluginLoader
 	 * PluginLoader constructor.
 	 * @param IConfigHandler $configHandler
 	 */
-	public function __construct(IConfigHandler $configHandler, DependencyInjector $di, IFileAutoLoader $fileAutoLoader)
+	public function __construct(IConfigHandler $configHandler, IDependencyContainer $di, IFileAutoLoader $fileAutoLoader)
 	{
 		$this->configHandler = $configHandler;
 		$this->di = $di;
@@ -206,14 +206,8 @@ class PluginLoader implements IPluginLoader
 			// Register autoloader for additional files
 			$this->fileAutoLoader->AddFromDirectory($this->getPluginDirectory($pluginName), strtolower($pluginName) . '.{class}');
 
-			$pluginInstance = $this->di->AutoWire($pluginName);
-
-			$this->di->AddMapping(new DependencyMappingFromArray([
-				$pluginName => [
-					DependencyInjector::Mapping_RemoteInstance => $pluginInstance
-				]
-			]));
-
+			$pluginInstance = $this->di->Autowire($pluginName);
+			$this->di->AddInstance($pluginInstance, $pluginName);
 			$this->setPluginLoaded($pluginName, $pluginInstance);
 		}
 

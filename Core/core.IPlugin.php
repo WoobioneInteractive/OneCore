@@ -1,15 +1,22 @@
 <?php
 
-interface IPlugin extends IDependencyInjectable
+interface IPlugin
 {
 	/**
-	 * @return bool|string Autoload child files | Custom child file pattern
+	 * @return mixed
 	 */
-	//public function Autoload();
+	//public function RegisterFiles();
 
 	/**
-	 * @return string[]|bool Names of plugins the are required by the plugin | bool false
+	 * Register dependencies in the dependency container
+	 * @param IDependencyContainer $container
 	 */
-	//public function Dependencies();
+	//public function RegisterDependencies(IDependencyContainer $container);
+
+	/**
+	 * Get plugin's required plugins. Array with plugin names or null for no required plugins
+	 * @return string[]|null
+	 */
+	//public static function RequiredPlugins();
 
 }

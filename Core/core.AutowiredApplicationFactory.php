@@ -3,15 +3,15 @@
 class AutowiredApplicationFactory implements IApplicationFactory
 {
 	/**
-	 * @var DependencyInjector
+	 * @var IDependencyContainer
 	 */
 	private $di;
 
 	/**
 	 * AutowiredApplicationFactory constructor.
-	 * @param DependencyInjector $di
+	 * @param IDependencyContainer $di
 	 */
-	public function __construct(DependencyInjector $di)
+	public function __construct(IDependencyContainer $di)
 	{
 		$this->di = $di;
 	}
@@ -22,6 +22,6 @@ class AutowiredApplicationFactory implements IApplicationFactory
 	 */
 	public function Initialize($applicationClassName)
 	{
-		return $this->di->AutoWire($applicationClassName);
+		return $this->di->Autowire($applicationClassName);
 	}
 }

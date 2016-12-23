@@ -13,6 +13,7 @@ class OneCore
 	const Config_Debug = 'onecore.debug';
 	const Config_ExceptionHandler = 'onecore.exceptionHandler';
 	const Config_MainApplicationIdentifier = 'onecore.mainApplicationIdentifier';
+	const Config_Dependencies = 'onecore.dependencies';
 
 	// Internal constants
 	const CoreFilePrefix = 'core.';
@@ -69,18 +70,14 @@ class OneCore
 			$this->ConfigHandler = new ConfigHandler(ONECORE_PATH . self::DefaultConfigFile);
 
 			// Register dependency injector
-			$this->DependencyInjector = new DependencyInjector([
-				IConfigHandler::class => [
-					DependencyInjector::Mapping_RemoteInstance => $this->ConfigHandler
-				],
-				IConfiguration::class => [
-					DependencyInjector::Mapping_RemoteInstance => $this->ConfigHandler
-				]
+			$this->DependencyInjector = new OneDI([
+				new DependencyCollectionFromConfigDelegate($this->ConfigHandler, self::Config_Dependencies)
 			]);
-			$this->DependencyInjector->AddAutowiredMapping(DependencyMappingFromConfig::class);
+			$this->DependencyInjector->AddInstance($this->ConfigHandler, IConfigHandler::class);
+			$this->DependencyInjector->AddInstance($this->ConfigHandler, IConfiguration::class);
 
 			// Register application loader
-			$this->ApplicationLoader = $this->DependencyInjector->AutoWire(ApplicationLoader::class);
+			$this->ApplicationLoader = $this->DependencyInjector->Autowire(ApplicationLoader::class);
 
 			// All done!
 			$this->coreLoaded = true;
@@ -102,16 +99,20 @@ class OneCore
 	private function registerAutoloader()
 	{
 		spl_autoload_register(function ($className) {
+			// Core files required for OneCore to function
 			$coreFileName = ONECORE_PATH . self::CoreFilePrefix . $className . self::FileSuffix;
-			$commonFileName = ONECORE_PATH . self::CommonFilePrefix . $className . self::FileSuffix;
-
-			// Core files require OneCore to function
 			if (file_exists($coreFileName))
 				require_once $coreFileName;
 
 			// Common files can be used stand-alone
+			$commonFileName = ONECORE_PATH . self::CommonFilePrefix . $className . self::FileSuffix;
 			if (file_exists($commonFileName))
 				require_once $commonFileName;
+
+			// OneDI
+			$oneDI = ONECORE_PATH . 'OneDI' . DIRECTORY_SEPARATOR . $className . self::FileSuffix;
+			if (file_exists($oneDI))
+				require_once $oneDI;
 		});
 	}
 
